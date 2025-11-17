@@ -1,0 +1,32 @@
+name: Hola Mundo
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened]
+    branches: [main]
+  release:
+    types: [created]
+
+jobs:
+  test-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Start server
+        run: |
+          python3 -m http.server 8000 &
+          echo $! > server.pid
+          sleep 1
+      - name: Fetch index.html
+        run: |
+          curl -sS http://localhost:8000/index.html | tee output.html
+      - name: Assert content
+        run: |
+          grep -q "Hola mundo devops" output.html
+      - name: Stop server
+        if: always()
+        run: |
+          kill $(cat server.pid) || true
